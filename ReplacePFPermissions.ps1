@@ -29,6 +29,6 @@ foreach ($Folder in $Folders)
             }
         }
         Write-Host -ForegroundColor Green "Adding the $($AccessRights) permission on $($Folder.Identity.ToString()) for $($NewUser)"
-        Add-PublicFolderClientPermission -Identity $Folder.Identity -User $NewUser -AccessRights $AccessRights            
+        $Return = Add-PublicFolderClientPermission -Identity $Folder.Identity -User $NewUser -AccessRights $AccessRights            
     }
 }
