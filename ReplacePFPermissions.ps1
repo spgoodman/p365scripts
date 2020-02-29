@@ -1,4 +1,4 @@
-﻿param($NewUser,$FolderTree,$AccessRights,$TestMode=$False)
+param($NewUser,$FolderTree,$AccessRights,$TestMode=$False)
 [array]$Folders = Get-PublicFolder -Identity $FolderTree -Recurse -ResultSize Unlimited -ErrorAction SilentlyContinue
 if (!$Folders) { throw "Folder $($FolderTree) not found" }
 $Recipient = Get-Recipient -Identity $NewUser -ErrorAction SilentlyContinue
@@ -18,8 +18,7 @@ foreach ($Folder in $Folders)
                 Remove-PublicFolderClientPermission -Identity $ExistingPermission.Identity -User $ExistingPermission.User -AccessRights $ExistingPermission.AccessRights -WhatIf
             }
         }
-        Write-Host -ForegroundColor Green "Would add the following $($AccessRights) permission on $($Folder.Identity.ToString())"
-        Add-PublicFolderClientPermission -Identity $Folder.Identity -User $NewUser -AccessRights $AccessRights -WhatIf  
+       
     } else {
         if ($ExistingPermissions)
         {
