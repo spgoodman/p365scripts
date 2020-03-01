@@ -1,4 +1,4 @@
-﻿param($Remove=$False,$TestMode=$False)
+﻿param($Check=$True,$Remove=$False,$TestMode=$False)
 [array]$Folders = Get-PublicFolder -Identity "\" -Recurse -ResultSize Unlimited
 foreach ($Folder in $Folders)
 {
