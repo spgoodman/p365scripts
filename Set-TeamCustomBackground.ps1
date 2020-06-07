@@ -1,4 +1,4 @@
-﻿param($CustomPNG,$CustomJPG)
+param($CustomPNG,$CustomJPG)
 if ((Test-Path -Path $CustomJPG -ErrorAction SilentlyContinue))
 {
     $CustomPNG = $env:TEMP + "\tmp_TeamsCustomBackground.png"
@@ -12,15 +12,21 @@ if (!(Test-Path -Path $CustomPNG -ErrorAction SilentlyContinue))
     throw $CustomPNG + " not found"
 }
 $FileToReplace = $env:APPDATA + "\Microsoft\Teams\Backgrounds\" + "teamsBackgroundContemporaryOffice03.png"
-$FileHash = (Get-FileHash -Path $CustomPNG).Hash
-Write-Host -ForegroundColor Green "Setting Teams Custom Background to replace $($FileToReplace)"
-Write-Host -ForegroundColor White "Leave this running until you join your meeting with the custom background, then press CTRL-C to exit"
-Copy-Item -Path $CustomPNG -Destination $FileToReplace -Force:$True
-while (1 -eq 1)
+$FileLength = (Get-Item $FileToReplace).Length
+$FileHash = (Get-FileHash $FileToReplace).Hash
+$CustomFileHash = (Get-FileHash $CustomPNG).Hash
+# Find cached version
+$Cache = $env:APPDATA + "\Microsoft\Teams\Cache"
+[array]$MatchingCachedItems = Get-ChildItem $Cache | Where {$_.Length -eq $FileLength}
+foreach ($MatchingCachedItem in $MatchingCachedItems)
 {
-    Start-Sleep -Milliseconds 500
-    if ((Get-FileHash -Path $FileToReplace -ErrorAction SilentlyContinue).Hash -ne $FileHash)
+    $CacheFileHash = (Get-FileHash $MatchingCachedItem.FullName).Hash
+    if ($CacheFileHash -eq $FileHash)
     {
-        Copy-Item -Path $CustomPNG -Destination $FileToReplace -Force:$True
+        $CacheFileToReplace = $MatchingCachedItem.FullName
+        break;
     }
 }
+
+Write-Host -ForegroundColor Green "Setting Teams Custom Background to replace cache item for $($FileToReplace)"
+Copy-Item -Path $CustomPNG -Destination $CacheFileToReplace -Force:$True
