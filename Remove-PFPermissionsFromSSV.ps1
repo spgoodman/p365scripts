@@ -10,16 +10,21 @@ if (!$SSVContent)
 }
 foreach ($SSVLine in $SSVContent)
 {
-    $SSVLine=$SSVLine.Replace("this folder ","")
-    $SSVLine=$SSVLine.Replace("permission needs to be removed for user ","");
-    $Folder=($SSVLine.Split(" "))[0]
-    $SID="NT $(($SSVLine.Split(" "))[2])"
-    if ($TestMode)
-    {
-        Write-Host -ForegroundColor Green "Testing removing PF permission for $($Folder) for invalid SID $($SID)"
-        Get-PublicFolderClientPermission -Identity $Folder| Where {$_.User -like $SID} | Remove-PublicFolderClientPermission -WhatIf
-    } else {
-         Write-Host -ForegroundColor Green "Forcing removal of PF permission for $($Folder) for invalid SID $($SID)"
-        Get-PublicFolderClientPermission -Identity $Folder| Where {$_.User -like $SID} | Remove-PublicFolderClientPermission -Confirm:$False
+    $SSVLine1=$SSVLine.Replace("this folder ","").Replace(" permission needs to be removed for user ","@")
+    $Folder=$SSVLine1.Split("@")[0]
+    $SID=$SSVLine1.Split("@")[1]
+            
+   $test = Get-PublicFolderClientPermission -Identity $Folder| Where {$_.User -like $SID}
+   IF(-not ([string]::IsNullOrEmpty($test.Identity) -or [string]::IsNullOrEmpty($test.User.DisplayName))){
+	   if ($TestMode){
+		   "Testing removing PF permission for $($Folder) for invalid SID $($SID)" | out-file $logfile -Append
+			Get-PublicFolderClientPermission -Identity $Folder| Where {$_.User -like $SID} | Remove-PublicFolderClientPermission -WhatIf
+		} 
+        else {
+			Remove-PublicFolderClientPermission -Identity $test.Identity -User $test.User.DisplayName -Confirm:$False
+			"Removed Public Folder permission on " + $test.Identity + " of user " + $test.User.DisplayName | out-file $logfile -Append
+		}
     }
 }
+#I had to make these changes on Exchange 2013 to get the script to work with username and with
+#Public Folder names that had a space in them
